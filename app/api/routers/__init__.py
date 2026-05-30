@@ -1,5 +1,5 @@
 """API routers package."""
 
-from . import events, health, stores
+from . import anomalies, events, health, stores
 
-__all__ = ["events", "health", "stores"]
+__all__ = ["anomalies", "events", "health", "stores"]
