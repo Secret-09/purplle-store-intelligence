@@ -5,3 +5,8 @@ output/
 data/
 *.mp4
 .env
+
+node_modules/
+dist/
+dashboard/frontend/node_modules/
+dashboard/frontend/dist/
