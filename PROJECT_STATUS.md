@@ -32,6 +32,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 - Zone manager: polygon zones loader and point-in-polygon — `pipeline/zones.py` and config `config/store_zones.yaml`
 - Session manager / events pipeline: session tracking, ENTRY/EXIT/REENTRY, queue events, shelf-interaction heuristics, zone events and JSONL writer — `pipeline/sessions.py` and `pipeline/events.py`
 - Runner: CLI to run detection → tracking → sessions and write JSONL — `pipeline/run.py`
+- POS transaction ingestion: CSV parser and PURCHASE event generator — `pipeline/pos_ingest.py`
 - Analytics helper: simple post-hoc queue metrics reader — `pipeline/analytics.py`
 - Detection subsystem placeholders: feature extraction / preprocess / ingest modules exist as stubs under `pipeline/detection/`
 

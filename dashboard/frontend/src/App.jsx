@@ -1,43 +1,33 @@
-import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
-import Overview from './pages/Overview'
-import Metrics from './pages/Metrics'
-import Funnel from './pages/Funnel'
-import Heatmap from './pages/Heatmap'
-import Anomalies from './pages/Anomalies'
+import React, { Suspense, lazy } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import NavBar from './components/NavBar'
+import { StoreProvider } from './context/StoreContext'
+import Spinner from './components/Spinner'
 
-function Nav() {
-  return (
-    <nav className="bg-white shadow">
-      <div className="container py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link to="/" className="text-xl font-semibold">Purplle Dashboard</Link>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">Overview</Link>
-          <Link to="/metrics" className="text-sm text-gray-600 hover:text-gray-900">Metrics</Link>
-          <Link to="/funnel" className="text-sm text-gray-600 hover:text-gray-900">Funnel</Link>
-          <Link to="/heatmap" className="text-sm text-gray-600 hover:text-gray-900">Heatmap</Link>
-          <Link to="/anomalies" className="text-sm text-gray-600 hover:text-gray-900">Anomalies</Link>
-        </div>
-      </div>
-    </nav>
-  )
-}
+const Overview = lazy(() => import('./pages/Overview'))
+const Metrics = lazy(() => import('./pages/Metrics'))
+const Funnel = lazy(() => import('./pages/Funnel'))
+const Heatmap = lazy(() => import('./pages/Heatmap'))
+const Anomalies = lazy(() => import('./pages/Anomalies'))
 
 export default function App() {
   return (
-    <div>
-      <Nav />
-      <main className="container py-8">
-        <Routes>
-          <Route path="/" element={<Overview />} />
-          <Route path="/metrics" element={<Metrics />} />
-          <Route path="/funnel" element={<Funnel />} />
-          <Route path="/heatmap" element={<Heatmap />} />
-          <Route path="/anomalies" element={<Anomalies />} />
-        </Routes>
-      </main>
-    </div>
+    <StoreProvider>
+      <div className="min-h-screen flex flex-col">
+        <NavBar />
+        <main className="flex-1">
+          <Suspense fallback={<div className="container py-8"><Spinner /></div>}>
+            <Routes>
+              <Route path="/" element={<Overview />} />
+              <Route path="/metrics" element={<Metrics />} />
+              <Route path="/funnel" element={<Funnel />} />
+              <Route path="/heatmap" element={<Heatmap />} />
+              <Route path="/anomalies" element={<Anomalies />} />
+            </Routes>
+          </Suspense>
+        </main>
+        <footer className="py-4 text-center text-sm text-gray-500">Purplle Store Intelligence</footer>
+      </div>
+    </StoreProvider>
   )
 }

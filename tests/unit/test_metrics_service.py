@@ -47,3 +47,18 @@ def test_get_store_metrics_calculates_expected_metrics():
     assert metrics.queue_depth == 1
     assert metrics.abandonment_rate == 0.5
     assert metrics.average_dwell_ms > 0
+
+
+def test_get_store_metrics_uses_purchase_events_when_no_transactions():
+    store = Store(id=1, store_code="STORE-001", name="Store One")
+    session_a = make_session(1, "visitor-a", entry_offset=10, exit_offset=5)
+
+    db = MagicMock()
+    db.get.return_value = store
+    db.scalars.return_value.all.return_value = [session_a]
+    db.scalar.side_effect = [0, 1]
+    db.execute.return_value.all.return_value = []
+
+    metrics = get_store_metrics(db, store_id=1)
+
+    assert metrics.conversion_rate == 1.0

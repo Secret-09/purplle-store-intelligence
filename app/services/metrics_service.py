@@ -11,6 +11,7 @@ from app.schemas.metrics import StoreMetrics
 
 BILLING_QUEUE_JOIN = "BILLING_QUEUE_JOIN"
 BILLING_QUEUE_ABANDON = "BILLING_QUEUE_ABANDON"
+PURCHASE_EVENT_TYPE = "PURCHASE"
 QUEUE_EVENT_TYPES = {BILLING_QUEUE_JOIN, BILLING_QUEUE_ABANDON}
 
 
@@ -59,7 +60,20 @@ def get_store_metrics(db: Session, store_id: int) -> StoreMetrics:
         .where(POSTransaction.session_id.is_not(None))
     )
     transaction_sessions = int(transaction_sessions or 0)
-    conversion_rate = transaction_sessions / unique_visitors if unique_visitors else 0.0
+
+    purchase_visitors = db.scalar(
+        select(func.count(distinct(Event.visitor_id)))
+        .where(Event.store_id == store_id)
+        .where(Event.event_type == PURCHASE_EVENT_TYPE)
+        .where(Event.is_staff.is_(False))
+        .where(Event.visitor_id.is_not(None))
+    )
+    purchase_visitors = int(purchase_visitors or 0)
+
+    if transaction_sessions:
+        conversion_rate = transaction_sessions / unique_visitors if unique_visitors else 0.0
+    else:
+        conversion_rate = purchase_visitors / unique_visitors if unique_visitors else 0.0
 
     average_dwell_ms = _extract_average_dwell_ms(nonstaff_sessions)
 
