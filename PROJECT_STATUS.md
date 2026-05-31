@@ -47,7 +47,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 ## Implemented Tests
 
 - Unit tests: multiple unit test files present under `tests/unit/` (metrics, funnel, anomalies, ingestion, etc.)
-- Integration test: an E2E integration test placeholder exists under `tests/integration/test_end_to_end.py`
+- Integration test: an E2E smoke test now exists under `tests/integration/test_end_to_end.py` and validates JSONL ingestion through the API plus metrics retrieval.
 - Pipeline tests: pipeline test stubs under `pipeline/tests/`
 - Status: a mix of real tests and placeholders; analytics & anomaly unit tests exist, but many test files are placeholders
 - Regression coverage added for optional `zone_id` and `dwell_ms` ingestion payloads.
@@ -64,7 +64,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 - Staff detection / marking: pipeline currently defaults `is_staff=False`; no staff classifier or whitelist present. This is required for accurate metrics exclusion.
 - Per-camera calibration / meters↔pixels mapping: `pixels_per_meter` is a hard-coded default in `SessionManager`; no per-camera calibration or normalized polygons in `config/store_zones.yaml`.
 - Normalized zone coordinates: zones are pixel-based in `config/store_zones.yaml`; not normalized for differing resolutions.
-- E2E pipeline integration tests: no end-to-end tests exercising detector→tracker→sessions→ingestion with sample frames/video.
+- E2E pipeline integration tests: an end-to-end smoke test now exists for JSONL ingestion and metrics retrieval, but detector→tracker→sessions sample-video coverage is still missing.
 - Dashboard integration: dashboard UI is placeholder and not wired to backend endpoints.
 - Robust deployment artifacts / CI: Dockerfiles/compose are placeholders; no CI workflows or production configs.
 - Staff-aware pipeline events: no mechanism to mark events as staff before ingestion; will affect analytics that exclude staff.
