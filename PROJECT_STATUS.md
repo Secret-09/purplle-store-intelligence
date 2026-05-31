@@ -54,10 +54,10 @@ This file is an audit-only snapshot of the repository state at the time of writi
 
 ## Docker Status
 
-- Dockerfiles: placeholder Dockerfiles exist — `docker/Dockerfile.backend`, `docker/Dockerfile.dashboard`
-- Compose files: root and docker/ compose files exist but contain placeholder/empty content — `docker-compose.yml` (root) and `docker/docker-compose.yml`
-- Scripts: startup/migrate/run scripts are placeholders under `scripts/`
-- Status: containerization is scaffolded but not production-ready
+- Dockerfiles: production-ready service images are implemented for backend and dashboard — `docker/Dockerfile.backend`, `docker/Dockerfile.dashboard`
+- Compose files: root `docker-compose.yml` now defines PostgreSQL, backend, and dashboard services with environment-driven configuration
+- Scripts: startup/migrate/run scripts remain placeholders under `scripts/`
+- Status: containerization is implemented for local deployment, but CI and cloud production orchestration are still missing
 
 ## Missing Challenge Requirements / Gaps
 
@@ -66,7 +66,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 - Normalized zone coordinates: zones are pixel-based in `config/store_zones.yaml`; not normalized for differing resolutions.
 - E2E pipeline integration tests: an end-to-end smoke test now exists for JSONL ingestion and metrics retrieval, but detector→tracker→sessions sample-video coverage is still missing.
 - Dashboard integration: dashboard UI is placeholder and not wired to backend endpoints.
-- Robust deployment artifacts / CI: Dockerfiles/compose are placeholders; no CI workflows or production configs.
+- Robust deployment artifacts / CI: Dockerfiles/compose are implemented for local stack deployment; no CI workflows or cloud production configs are present.
 - Staff-aware pipeline events: no mechanism to mark events as staff before ingestion; will affect analytics that exclude staff.
 - Detailed queue analytics: basic queue join/abandon implemented; further metrics (service/completion events, per-server throughput, SLA thresholds) absent.
 - Persisted pipeline→DB integration: automated JSONL → ingestion API connector now exists, but full runtime orchestration with a live backend service still needs end-to-end smoke testing.

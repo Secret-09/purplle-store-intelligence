@@ -8,27 +8,46 @@ This repository can be deployed locally using Docker Compose for the PostgreSQL 
 - `backend`: FastAPI API server
 - `dashboard`: React dashboard served by Nginx
 
+## Environment
+
+Copy the example environment file and then customize it as needed:
+
+```bash
+cp .env.example .env
+```
+
+The following variables are supported:
+
+- `POSTGRES_USER` — PostgreSQL user name
+- `POSTGRES_PASSWORD` — PostgreSQL password
+- `POSTGRES_DB` — PostgreSQL database name
+- `DATABASE_URL` — database connection string for the backend
+- `VITE_API_BASE` — dashboard API base URL baked into the frontend build
+
 ## Getting Started
 
-1. Copy environment variables:
-   ```bash
-   cp .env.example .env
-   ```
+Build and start the stack:
 
-2. Build and start the stack:
-   ```bash
-   docker compose up --build
-   ```
+```bash
+docker compose up --build
+```
 
-3. Access the services:
-   - API: `http://localhost:8000`
-   - Dashboard: `http://localhost:4173`
+Then access:
+
+- API: `http://localhost:8000`
+- Dashboard: `http://localhost:4173`
+
+For detached mode:
+
+```bash
+docker compose up --build -d
+```
 
 ## Notes
 
-- The backend automatically creates database tables on startup.
-- The dashboard build uses `VITE_API_BASE` to point the browser to the backend API.
-- If you change any backend Python dependencies or frontend assets, restart with `docker compose up --build`.
+- The backend startup script waits for PostgreSQL and creates missing database tables automatically.
+- The dashboard build uses `VITE_API_BASE` at build time; update `.env` before rebuilding to point the frontend to the correct backend host.
+- If backend or frontend dependencies change, restart with `docker compose up --build`.
 
 ## Stopping
 
