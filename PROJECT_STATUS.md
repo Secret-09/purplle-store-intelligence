@@ -32,6 +32,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 - Zone manager: polygon zones loader and point-in-polygon — `pipeline/zones.py` and config `config/store_zones.yaml`
 - Session manager / events pipeline: session tracking, ENTRY/EXIT/REENTRY, queue events, shelf-interaction heuristics, zone events and JSONL writer — `pipeline/sessions.py` and `pipeline/events.py`
 - Runner: CLI to run detection → tracking → sessions and write JSONL — `pipeline/run.py`
+- Automated JSONL → ingestion API connector: `pipeline/ingest_api.py` can post generated event JSONL into `/events/ingest` in configurable batches.
 - Event schema / ingestion compatibility: pipeline and API now accept optional `zone_id` and `dwell_ms` for events that do not carry measurement values.
 - POS transaction ingestion: CSV parser and PURCHASE event generator — `pipeline/pos_ingest.py`
 - Analytics helper: simple post-hoc queue metrics reader — `pipeline/analytics.py`
@@ -68,7 +69,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 - Robust deployment artifacts / CI: Dockerfiles/compose are placeholders; no CI workflows or production configs.
 - Staff-aware pipeline events: no mechanism to mark events as staff before ingestion; will affect analytics that exclude staff.
 - Detailed queue analytics: basic queue join/abandon implemented; further metrics (service/completion events, per-server throughput, SLA thresholds) absent.
-- Persisted pipeline→DB integration: pipeline emits `events.jsonl` and a simple analytics script — no automated connector to push generated JSONL into the ingestion API.
+- Persisted pipeline→DB integration: automated JSONL → ingestion API connector now exists, but full runtime orchestration with a live backend service still needs end-to-end smoke testing.
 
 ## Broken / Risky Code Paths
 
