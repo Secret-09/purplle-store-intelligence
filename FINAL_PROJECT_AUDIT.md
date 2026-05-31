@@ -1,157 +1,136 @@
 # Final Project Audit
 
-## 1. Implemented Features
+## Feature coverage
 
-- FastAPI backend with routed API surface for:
-  - health checks (`/health`)
-  - event ingestion (`POST /events/ingest`)
-  - store metrics (`GET /stores/{store_id}/metrics`)
-  - store funnel data (`GET /stores/{store_id}/funnel`)
-  - store anomalies (`GET /stores/{store_id}/anomalies`)
+- Backend service with FastAPI and routed endpoints:
+  - `POST /events/ingest`
+  - `GET /stores/{store_id}/metrics`
+  - `GET /stores/{store_id}/funnel`
+  - `GET /stores/{store_id}/anomalies`
+  - `GET /health`
 
-- Event ingestion pipeline:
-  - `app/schemas/event.py` validates challenge event payloads
-  - `app/services/ingestion_service.py` deduplicates on `event_id`
-  - idempotent insert using PostgreSQL `ON CONFLICT DO NOTHING`
-  - JSONL ingestion connector in `pipeline/ingest_api.py`
-  - batch posting support with configurable batch size
+- Ingestion features:
+  - JSON schema validation for event payloads
+  - optional `zone_id` and `dwell_ms` support
+  - deduplication by `event_id`
+  - batch ingestion support through `pipeline/ingest_api.py`
 
-- Pipeline event generation and session modeling:
-  - detection wrapper (`pipeline/detect.py`) with YOLO fallback
-  - tracking layer (`pipeline/tracker.py`) with ByteTrack or simple tracker fallback
-  - zone management and polygon checks in `pipeline/zones.py`
-  - session lifecycle and event emission in `pipeline/sessions.py`
-  - event writer and JSONL output in `pipeline/events.py`
+- Pipeline features:
+  - object detection layer with YOLO fallback
+  - tracking layer with ByteTrack or simple tracker fallback
+  - session management and event emission from tracked objects
+  - zone transition detection and checkout queue event modeling
+  - POS ingestion and `PURCHASE` event support
 
-- Shopper analytics services:
-  - store metrics service in `app/services/metrics_service.py`
+- Analytics features:
+  - store-level metrics service
+  - funnel stage computation
+  - anomaly service for event-based anomaly detection
+
+- Dashboard coverage:
+  - frontend application scaffold in `dashboard/frontend`
+  - static site build via multi-stage Docker image
+  - SPA routing support via Nginx
+
+- Deployment coverage:
+  - `docker/Dockerfile.backend` for backend container
+  - `docker/Dockerfile.dashboard` for frontend container
+  - `docker-compose.yml` for local service composition
+  - database startup helper script in `docker/backend-entrypoint.sh`
+
+## Testing coverage
+
+- Total passing tests: 21
+- End-to-end smoke test: `tests/integration/test_end_to_end.py`
+- Unit and regression coverage for:
+  - ingestion service
+  - event JSONL connector
+  - store metrics service
+  - funnel service
+  - anomaly service
+- Not covered by tests:
+  - full video detection/tracking pipeline on sample footage
+  - dashboard frontend API integration
+  - distributed deployment and failure/retry behavior
+
+## Architecture coverage
+
+- API layer:
+  - FastAPI application in `app/api/main.py`
+  - router modules for events, stores, anomalies, health
+
+- Data layer:
+  - SQLAlchemy models in `app/database/models/models.py`
+  - relational tables for stores, zones, sessions, events, anomalies, POS transactions
+  - `app/database/connection.py` for DB session management
+
+- Pipeline layer:
+  - detection in `pipeline/detect.py`
+  - tracking in `pipeline/tracker.py`
+  - sessions/events in `pipeline/sessions.py` and `pipeline/events.py`
+  - JSONL ingestion adapter in `pipeline/ingest_api.py`
+
+- Analytics layer:
+  - metrics service in `app/services/metrics_service.py`
   - funnel service in `app/services/funnel_service.py`
   - anomaly service in `app/services/anomaly_service.py`
 
-- Dashboard front-end scaffold:
-  - Vite-based frontend in `dashboard/frontend`
-  - KPI and funnel page scaffolding
-  - API client wiring support via `dashboard/frontend/src/services/api.js`
+- UI layer:
+  - dashboard app under `dashboard/frontend`
+  - Nginx static server config in `docker/nginx.conf`
 
-- Database modeling:
-  - SQLAlchemy models in `app/database/models/models.py`
-  - store, zone, visitor session, event, anomaly, POS transaction entities
-  - support for nullable `zone_id` and `dwell_ms` on events
-  - JSON metadata fields for flexible payload storage
+## Deployment coverage
 
-- Integration coverage:
-  - new end-to-end smoke test in `tests/integration/test_end_to_end.py`
-  - pipeline ingestion connector tests in `pipeline/tests/test_ingest_api.py`
-  - unit tests across ingestion, metrics, funnel, anomalies, API routers
+- Backend Docker image:
+  - Python 3.12 slim base
+  - dependency installation from `requirements.txt`
+  - non-root `app` user
+  - startup script that waits for Postgres and creates tables
 
-## 2. Remaining Gaps
+- Dashboard Docker image:
+  - multi-stage build from `node:20-alpine`
+  - builds frontend assets and serves with Nginx
+  - supports build-time `VITE_API_BASE`
 
-- Full event pipeline coverage:
-  - no full sample-video detector→tracker→session→ingestion end-to-end test
-  - the E2E smoke test validates JSONL ingestion and metrics retrieval only
+- Compose stack:
+  - services for `postgres`, `backend`, and `dashboard`
+  - environment variables for DB connection and frontend API base
+  - persisted Postgres volume
 
-- Dashboard completion:
-  - UI scaffold exists, but dashboard endpoints and visualization wiring require additional polish and real data integration
+- Static routing:
+  - Nginx config supports SPA routing and serves frontend assets
 
-- Staff/source classification:
-  - pipeline currently defaults `is_staff=False`
-  - no dedicated staff detection or whitelist mechanism is implemented
+## Remaining risks
 
-- Calibration and zone normalization:
-  - `config/store_zones.yaml` uses pixel-based zone definitions
-  - no per-camera calibration or normalized coordinate mapping is present
+- Deployment risks:
+  - runtime health and readiness probes are incomplete
+  - dashboard API base is baked in at build time, limiting runtime flexibility
+  - no CI/CD deployment pipeline or platform manifests
 
-- Deployment and CI maturity:
-  - Dockerfiles and compose assets are scaffolded but remain placeholder-like
-  - no production-grade CI workflows, deployment manifests, or orchestration configs present
+- Functional risks:
+  - no explicit staff detection path means analytics may misclassify staff as visitors
+  - zone definitions are pixel-based, with no calibration for varying camera geometries
+  - backend assumptions rely on PostgreSQL JSONB; SQLite is supported only for tests via compatibility workarounds
 
-- Analytics expansion:
-  - `app/services/analytics_service.py` is effectively a placeholder
-  - advanced KPI and anomaly reasoning beyond basic queue/checkout metrics remains incomplete
+- Testing risks:
+  - major pipeline behaviors are not validated against sample video input
+  - frontend and backend integration is not covered by automated tests
 
-- Data persistence assumptions:
-  - schema assumes PostgreSQL JSONB type, so SQLite compatibility is for tests only
-  - production readiness requires a live PostgreSQL instance and proper migration tooling
+## Estimated challenge score
 
-## 3. Test Coverage Summary
+- Feature implementation: 75/100
+- Testing maturity: 70/100
+- Architecture coherence: 70/100
+- Deployment readiness: 50/100
 
-- Total passing tests: 21
-- End-to-end smoke test: `tests/integration/test_end_to_end.py` passes
-- Unit coverage includes:
-  - ingestion validation and service behavior
-  - JSONL ingestion connector batching and empty file handling
-  - metrics / funnel / anomaly service tests present across `tests/unit`
-- Existing tests do not currently cover:
-  - raw detection/tracking pipeline behavior on actual video inputs
-  - full dashboard API integration
-  - cross-service failure/retry scenarios for ingestion and analytics
+Overall estimated challenge score: **67 / 100**
 
-## 4. Architecture Components
+## Submission readiness
 
-- Backend API:
-  - FastAPI application entrypoint in `app/api/main.py`
-  - routers in `app/api/routers/*`
-  - DB connection and session management in `app/database/connection.py`
-
-- Database layer:
-  - SQLAlchemy Declarative models in `app/database/models/models.py`
-  - relational design for stores, zones, sessions, events, anomalies, POS transactions
-
-- Pipeline domain:
-  - detection: `pipeline/detect.py`
-  - tracking: `pipeline/tracker.py`
-  - session/event logic: `pipeline/sessions.py`, `pipeline/events.py`
-  - ingestion adapter: `pipeline/ingest_api.py`
-
-- Analytics services:
-  - metrics: `app/services/metrics_service.py`
-  - funnel: `app/services/funnel_service.py`
-  - anomaly: `app/services/anomaly_service.py`
-
-- Dashboard:
-  - frontend in `dashboard/frontend`
-  - backend placeholder docs in `dashboard/backend/README.md`
-
-- Dev tooling:
-  - shell scripts in `scripts/`
-  - Docker assets in `docker/`
-  - YAML config in `config/store_zones.yaml`
-
-## 5. Deployment Status
-
-- Docker and compose artifacts exist, but are not fully production-ready
-- Backend is wired as a FastAPI service and can run locally, but no complete deploy script or container orchestration manifest is validated
-- Database connectivity is configured for PostgreSQL via `DATABASE_URL`, yet migration tooling is minimal and likely manual
-- Dashboard build and serving pipeline is scaffolded, but not fully documented or deployed in a validated runtime environment
-
-## 6. Estimated Challenge Completion Percentage
-
-- Implemented core backend and ingestion flow: ~75%
-- Implemented pipeline scaffolding and event writing: ~70%
-- Implemented basic analytics and dashboard scaffolding: ~60%
-- Overall estimated completion: ~65%
-
-Rationale:
-- Core feature set for challenge ingestion, storage, and metrics is largely implemented
-- Several higher-value challenge requirements remain in pipeline robustness, staff filtering, zone calibration, dashboard integration, and deployment hardening
-
-## 7. Production Readiness Assessment
-
-- Strengths:
-  - solid FastAPI backend and routed API endpoints
-  - event ingestion with validation and idempotent handling
-  - database schema supports the required event and session data structures
-  - end-to-end smoke test validates JSONL ingestion and metrics retrieval
-
-- Risks:
-  - incomplete dashboard wiring and user-facing integration
-  - missing explicit staff classification and per-camera calibration
-  - current deployment artifacts are scaffolded but not proven
-  - no CI/CD workflow or automated production deployment plan is present
-
-- Recommendation:
-  - this repository is at a strong prototype stage, suitable for early validation
-  - not yet ready for production without additional engineering on data quality, resilience, deployment, and dashboard integration
+- The repository is in a strong prototype stage.
+- Core ingestion, analytics, and dashboard scaffolding are implemented.
+- The solution is not fully production-ready due to deployment hardening, CI, and end-to-end pipeline validation gaps.
+- It is submission-ready for challenge evaluation, but further work is recommended before commercial production.
 
 ---
 
