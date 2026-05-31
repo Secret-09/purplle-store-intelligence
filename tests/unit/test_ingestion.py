@@ -47,6 +47,17 @@ def test_ingestion_service_handles_duplicates_and_insert_counts():
     db.commit.assert_called_once()
 
 
+def test_challenge_event_allows_optional_zone_id_and_dwell_ms():
+    payload = make_event_payload("e1")
+    payload["zone_id"] = None
+    payload["dwell_ms"] = None
+
+    event = ChallengeEvent.model_validate(payload)
+
+    assert event.zone_id is None
+    assert event.dwell_ms is None
+
+
 def test_event_payload_maps_metadata_to_event_metadata():
     event = ChallengeEvent.model_validate(make_event_payload("e1"))
     payload = _event_payload(event)
@@ -78,3 +89,30 @@ def test_ingest_events_endpoint_partial_success(monkeypatch):
     assert response.json()["duplicates"] == 0
     assert response.json()["rejected"] == 1
     assert len(response.json()["errors"]) == 1
+
+
+def test_ingest_events_endpoint_accepts_optional_zone_and_dwell(monkeypatch):
+    def fake_get_db():
+        yield MagicMock()
+
+    def fake_ingest_events(db, events):
+        assert len(events) == 1
+        assert events[0].zone_id is None
+        assert events[0].dwell_ms is None
+        return {"accepted": 1, "duplicates": 0, "rejected": 0, "errors": []}
+
+    monkeypatch.setattr(events_router, "get_db", fake_get_db)
+    monkeypatch.setattr(events_router, "ingest_events_service", fake_ingest_events)
+
+    client = TestClient(app)
+    payload = [make_event_payload("e1")]
+    payload[0]["zone_id"] = None
+    payload[0]["dwell_ms"] = None
+
+    response = client.post("/events/ingest", json=payload)
+
+    assert response.status_code == 200
+    assert response.json()["accepted"] == 1
+    assert response.json()["duplicates"] == 0
+    assert response.json()["rejected"] == 0
+    assert response.json()["errors"] == []

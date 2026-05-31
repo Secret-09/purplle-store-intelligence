@@ -32,6 +32,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 - Zone manager: polygon zones loader and point-in-polygon — `pipeline/zones.py` and config `config/store_zones.yaml`
 - Session manager / events pipeline: session tracking, ENTRY/EXIT/REENTRY, queue events, shelf-interaction heuristics, zone events and JSONL writer — `pipeline/sessions.py` and `pipeline/events.py`
 - Runner: CLI to run detection → tracking → sessions and write JSONL — `pipeline/run.py`
+- Event schema / ingestion compatibility: pipeline and API now accept optional `zone_id` and `dwell_ms` for events that do not carry measurement values.
 - POS transaction ingestion: CSV parser and PURCHASE event generator — `pipeline/pos_ingest.py`
 - Analytics helper: simple post-hoc queue metrics reader — `pipeline/analytics.py`
 - Detection subsystem placeholders: feature extraction / preprocess / ingest modules exist as stubs under `pipeline/detection/`
@@ -48,6 +49,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 - Integration test: an E2E integration test placeholder exists under `tests/integration/test_end_to_end.py`
 - Pipeline tests: pipeline test stubs under `pipeline/tests/`
 - Status: a mix of real tests and placeholders; analytics & anomaly unit tests exist, but many test files are placeholders
+- Regression coverage added for optional `zone_id` and `dwell_ms` ingestion payloads.
 
 ## Docker Status
 
@@ -70,7 +72,7 @@ This file is an audit-only snapshot of the repository state at the time of writi
 
 ## Broken / Risky Code Paths
 
-- `dwell_ms` DB nullability risk: `Event.dwell_ms` is mapped as a non-nullable integer in `app/database/models/models.py`, but many event creators may produce `None` (e.g., ENTRY events). Inserting `None` into a non-nullable DB column can cause insertion errors unless sanitized before insert. Verify ingestion sanitization or change DB nullability.
+- `dwell_ms` and `zone_id` payload compatibility: the event schema and database model now support optional values for event types that do not include those fields (e.g., ENTRY, REENTRY, ZONE_ENTER).
 - YOLO / ByteTrack optional dependency fallbacks: `pipeline/detect.py` and `pipeline/tracker.py` gracefully fallback to no-op detector / simple tracker — safe for import, but detection quality depends on environment setup and installation of optional packages.
 - Placeholder docker-compose files may be referenced by scripts: attempting to run container-based scripts will fail because compose files are placeholders / empty.
 - Stubbed modules: analytics/detection/dashboard service modules are placeholders; invoking these production flows will not function.

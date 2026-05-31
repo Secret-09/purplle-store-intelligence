@@ -72,7 +72,6 @@ class Zone(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     store: Mapped[Store] = relationship("Store", back_populates="zones")
-    events: Mapped[list[Event]] = relationship("Event", back_populates="zone", cascade="all, delete-orphan")
     transactions: Mapped[list[POSTransaction]] = relationship("POSTransaction", back_populates="zone", cascade="all, delete-orphan")
 
 
@@ -114,12 +113,12 @@ class Event(Base):
     event_id: Mapped[str] = mapped_column(String(128), nullable=False)
     store_id: Mapped[int] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
     session_id: Mapped[int | None] = mapped_column(ForeignKey("visitor_sessions.id", ondelete="SET NULL"), nullable=True)
-    zone_id: Mapped[int | None] = mapped_column(ForeignKey("zones.id", ondelete="SET NULL"), nullable=True)
+    zone_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     camera_id: Mapped[str] = mapped_column(String(128), nullable=False)
     visitor_id: Mapped[str] = mapped_column(String(128), nullable=False)
     event_type: Mapped[str] = mapped_column(String(128), nullable=False)
     event_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    dwell_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    dwell_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_staff: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     event_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB, nullable=True)
@@ -128,7 +127,6 @@ class Event(Base):
 
     store: Mapped[Store] = relationship("Store", back_populates="events")
     session: Mapped[VisitorSession | None] = relationship("VisitorSession", back_populates="events")
-    zone: Mapped[Zone | None] = relationship("Zone", back_populates="events")
     anomalies: Mapped[list[Anomaly]] = relationship("Anomaly", back_populates="event", cascade="all, delete-orphan")
 
 

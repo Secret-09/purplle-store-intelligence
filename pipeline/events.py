@@ -16,7 +16,7 @@ class Event:
     visitor_id: str
     event_type: str
     timestamp: str
-    zone_id: Optional[int]
+    zone_id: Optional[str]
     dwell_ms: Optional[int]
     is_staff: bool
     confidence: float
@@ -42,7 +42,7 @@ class EventWriter:
             pass
 
 
-def make_event(store_id: int, camera_id: str, visitor_id: str, event_type: str, timestamp: datetime, zone_id: Optional[int], dwell_ms: Optional[int], is_staff: bool, confidence: float, metadata: Optional[Dict] = None) -> Event:
+def make_event(store_id: int, camera_id: str, visitor_id: str, event_type: str, timestamp: datetime, zone_id: Optional[str], dwell_ms: Optional[int], is_staff: bool, confidence: float, metadata: Optional[Dict] = None) -> Event:
     return Event(
         event_id=str(uuid.uuid4()),
         store_id=store_id,
